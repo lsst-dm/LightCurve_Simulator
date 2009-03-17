@@ -4,14 +4,14 @@
     to query the original cronos.92 pointings or the dithered ones.
     Created September 24 2007 by K. Simon Krughoff University of Washington.
     Modified:
-    Jan 2008 by K. Simon Krughoff krughoff@astro.washington.edu
+    March 2009 by K. Simon Krughoff krughoff@astro.washington.edu
 '''
 import MySQLdb
 import numpy as num
 import math
 class DB:
     ''' Class for handling database connections '''
-    host = "lsst-db.astro.washington.edu"
+    host = "interp-db.astro.washington.edu"
     user = "lsst"
     passwd = "lsst"
     dbase = "lsst_pointings"
