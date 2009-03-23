@@ -4,7 +4,7 @@
     Realize takes a list of ra positions ra, dec positions dec, time offsets t_offset, whether to add
     random errors doAddErr, whether to use the dithered pointings from the database doDith
     Modified:
-    Jan 2008 by K. Simon Krughoff krughoff@astro.washington.edu
+    March 2008 by K. Simon Krughoff krughoff@astro.washington.edu
 '''
 from Interpolate import splineinterp
 from TimeSeriesMag import TimeSeriesMag
@@ -82,6 +82,8 @@ class LightCurve:
                 #Calculate total photometric error from interpolated magnitudes and 5 sigma limiting magnitues.
                 #Systematic error is assumed to be 0.01 magnitudes 
                 m1flux = MagUtils().toFluxArr(m5, fs)/5.
+                sysmag = (MagUtils().toMagArr(fluxinterp, fs) - 0.01)
+                sysfluxerr = MagUtils().toFluxArr(sysmag,fs) - fluxinterp 
                 sigs = []
                 magerrfp = []
                 magerrfm = []
@@ -89,6 +91,7 @@ class LightCurve:
                 if doAddErr:
                     #Add random error to interpolated magnitudes
                     tmpflux = fluxinterp + m1flux*num.random.normal(0,1,len(m1flux))
+                    tmpflux = tmpflux + sysfluxerr*num.random.normal(0,1,len(sysfluxerr))
                     tmpmag = MagUtils().toMagArr(tmpflux, fs)
                     sigs = tmpflux/m1flux
                     
