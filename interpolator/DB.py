@@ -129,7 +129,7 @@ class DB:
             #Query string to do the 3 space dot product of the pointing specified by ra/dec and all nondithered field centers.
             #Selects all field centers within 0.03054/deg2rad = 1.74981 degrees of the ra/dec pair
         else:
-            ralimstr = " or hexdithra ".join(ralimstr)
+            ralimstr = " or fieldra ".join(ralimstr)
             queryparts.append("select distinct(b.expMJD), b.%s from (select a.* from "%(m5col))
             queryparts.append("(select fieldra, fielddec from %s where fielddec %s and (fieldra %s) group by fieldra, fielddec) a where "%(simtab, declimstr, ralimstr))
             queryparts.append("acos(")
