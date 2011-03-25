@@ -7,36 +7,42 @@
     Modified:
     Jan 2008 by K. Simon Krughoff krughoff@astro.washington.edu
 '''
-#from scipy.interpolate import splrep, splev
 from scipy.interpolate import UnivariateSpline
+from scipy.interpolate import InterpolatedUnivariateSpline
 import numpy as num
 
-def makespline(x, y, sfactor=0.01):
+def makespline(x, y, sfactor=None, isIdeal=True):
     ''' Make a spline interpolation of the input curve defined by x and y.
         Calculate smoothing factor, s, based on the dynamic range of the 
         dependent variable, y.
         Inputs:
         x -- independent variable for curve
         y -- dependent variable for curve
-        sfactor -- smoothing factor
+        sfactor -- smoothing factor.  If None sfactor is calculated from the data
         Return:
         spline of input lightcurve
     '''
     val = None
     min = num.fabs(y).min()
     max = num.fabs(y).max()
-    #The s value is used to constrain
-    #the maximum allowable total square
-    #difference between data and spline.
-    #The sfactor is the average percent
-    #deviation which I have set to 1%
-    #(K. Krughoff Jan 2008)
-    if y.min() == 0:
-        val = (max - min)/2.
+    if sfactor is None:
+        #The s value is used to constrain
+        #the maximum allowable total square
+        #difference between data and spline.
+        #The sfactor is the average percent
+        #deviation which I have set to 1%
+        #(K. Krughoff Jan 2008)
+        if y.min() == 0:
+	    val = (max - min)/2.
+        else:
+            val = min
+        s = len(y)*(0.01*val)**2
     else:
-        val = min
-    s = len(y)*(sfactor*val)**2
-    tck = UnivariateSpline(x, y, s=s)
+        s = sfactor
+    if isIdeal:
+        tck = InterpolatedUnivariateSpline(x, y)
+    else:
+        tck = UnivariateSpline(x, y, s=s)
     return tck
 
 def evalper(tck, xinterpolate, x0, xp):
@@ -51,16 +57,16 @@ def evalper(tck, xinterpolate, x0, xp):
         Return:
         list of interpolated flux values
     '''
-    xp = float(xp)
     #Period in days 
-    xnew = xinterpolate - x0
+    xp = float(xp)
     #Apply offset to input independent values
-    xnew %= xp
+    xnew = xinterpolate - x0
     #Find location in period at each x location
-    xnew /= xp
+    xnew %= xp
     #Convert period location to fraction of period
-    ynew = tck(xnew)
+    xnew /= xp
     #Interpolated y values
+    ynew = tck(xnew)
     return ynew
 
 def evalnonper(tck, xspline, xinterpolate, x0, noflux=0.0):
@@ -77,13 +83,13 @@ def evalnonper(tck, xspline, xinterpolate, x0, noflux=0.0):
         Return:
         list of interpolated flux values
     '''
-    xinterpolate = xinterpolate - x0
     #Apply offset to input independent values
-    ynew = tck(xinterpolate)
+    xinterpolate = xinterpolate - x0
     #Evaluate spilne at each x location in xinterpolate
+    ynew = tck(xinterpolate)
+    #Return noflux value if x value is not in range of original spline range
     ynew = num.where(xinterpolate < xspline[0], noflux, ynew)
     ynew = num.where(xinterpolate > xspline[-1], noflux, ynew)
-    #Return noflux value if x value is not in range of original spline range
     return ynew
 
 def splineinterp(tck, xspline, xvals, x0, isperiodic, xp=-1):
@@ -98,10 +104,10 @@ def splineinterp(tck, xspline, xvals, x0, isperiodic, xp=-1):
         Return:
         list of interpolated flux values
     '''
-    xspline = num.asarray(xspline)
     #numpy array of original x values for spline
-    xvals = num.asarray(xvals)
+    xspline = num.asarray(xspline)
     #numpy array of x values for interpolation
+    xvals = num.asarray(xvals)
     if isperiodic:
         #execute evalper if curve is periodic
         return evalper(tck, xvals, x0, xp)

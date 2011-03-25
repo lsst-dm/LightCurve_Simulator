@@ -26,9 +26,9 @@ for line in open(infile).readlines():
 
 tms = []
 #list of TimeSeries sending mags
-ts = interp.TimeSeriesMag(time, Bms, err, err, 'g');
+ts = interp.TimeSeriesMag(time, Bms, err, err, 'g', offset=t_offset);
 tms.append(ts)
-ts = interp.TimeSeriesMag(time, Vms, err, err, 'r');
+ts = interp.TimeSeriesMag(time, Vms, err, err, 'r', offset=t_offset);
 tms.append(ts)
 tsorig = ts
 
@@ -42,14 +42,14 @@ dec.append(-30)
 dec.append(60)
 
 #send magnitudes and do the interpolation
-lc = interp.LightCurve(isper, tms)
-lcn = lc.Realize(ra, dec, t_offset, doAddErr = True, doDith = False, version="OpSim1_29")
+lc = interp.LightCurve(tms, isper)
 #Available versions are: opsim1_29, opsim5_72, and cronos92
 #If you wish to use the older version of the catalog, set the version to "Cronos92".
 #Dithering can currently only be done on the older version.
 #NOTE:  If resultant mag = -66 it was outside the original lightcurve
 #NOTE:  If resultant magerr = -9999 the m5 was brighter than the interpolated magnitude
 #in this case, the m5 is returned instead of the interpolated magnitude
+lcn = lc.Realize(ra, dec, doAddErr = True, doDith = False, version="OpSim3_61")
 timeres = []
 for i in range(len(ra)):
     mytss = lcn[i].tss
@@ -73,8 +73,8 @@ dt = int(max - min)
 times = range(dt)
 times = num.array(times) + min
 time = num.array(time)
-mags = tsorig.getSplineMags(times, t_offset)
-fluxs = tsorig.getSplineFlux(times, t_offset)
+mags = tsorig.evaluate(times)
+fluxs = tsorig.getSplineFlux(times)
 print "#Values for the interpolated input light curve"
 for i in range(len(times)):
     print times[i], mags[i]

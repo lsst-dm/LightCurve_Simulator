@@ -1,6 +1,8 @@
 '''
     Created:
     Jan 2008 by K. Simon Krughoff krughoff@astro.washington.edu\
+    Modified:
+    March 2011 by K. Simon Krughoff fixes of docs.
 '''
 import numpy as num
 

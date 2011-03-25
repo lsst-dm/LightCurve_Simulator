@@ -11,7 +11,8 @@ import numpy as num
 import math
 class DB:
     ''' Class for handling database connections '''
-    host = "interp-db.astro.washington.edu"
+    #host = "interp-db.astro.washington.edu"
+    host = "lsst-db.astro.washington.edu"
     user = "lsst"
     passwd = "lsst"
     dbase = "lsst_pointings"
@@ -37,7 +38,7 @@ class DB:
     def isOpen(self):
         return self.db != None
    
-    def getTimeMagSQL(self, ra, dec, filt, doDith=False, version="opsim1_29"):
+    def getTimeMagSQL(self, ra, dec, filt, doDith=False, version="opsim3_61"):
         ''' Retrieve timing from default database for a single ra/dec pair in a particular filter from
             any of the OpSim runs.
         Inputs:
@@ -62,10 +63,13 @@ class DB:
         elif(lversion == "opsim1_29"):
             m5col = "5sigma_ps"
             simtab = "output_opsim1_29"
+        elif(lversion == "opsim3_61"):
+            m5col = "5sigma_ps"
+            simtab = "output_opsim3_61"
         else:
             m5col = "5sigma_ps"
-            simtab = "output_opsim1_29"
-            print "Didn't recognize the run name (%s).  Setting to latest: OpSim1_29"%lversion
+            simtab = "output_opsim3_61"
+            print "Didn't recognize the run name (%s).  Setting to latest: OpSim3_61"%version
            
         if ra < 0 or ra > 360.:
             ra = ra%360.
@@ -115,7 +119,7 @@ class DB:
                 ralimstr.append("between %f and %f"%(ramin*deg2rad, 360.*deg2rad))
             else:
                 ralimstr = [ "between %f and %f"%(ramin*deg2rad, ramax*deg2rad) ]
-        #90 degrees in radians
+
         if doDith:
             ralimstr = " or hexdithra ".join(ralimstr)
             queryparts.append("select distinct(b.expMJD), b.%s from (select a.* from "%(m5col))
@@ -145,13 +149,13 @@ class DB:
         self.cursor.execute(query)
         result = self.cursor.fetchall()
         #Execute query and return all results
+        #Check if query returns.  If not, return empty arrays.
         if len(result) == 0:
-            #Check if query returns.  If not, return empty arrays.
             time = num.asarray(time)
             m5 = num.asarray(m5)
         else:
-            time, m5 = zip(*result)
             #Read results into arrays.  The star is very important.
+            time, m5 = zip(*result)
             time = num.asarray(time)
             m5 = num.asarray(m5)
         return time, m5
