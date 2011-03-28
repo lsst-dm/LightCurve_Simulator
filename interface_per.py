@@ -1,30 +1,16 @@
 #!/usr/bin/python
 import numpy as num
 import interpolator as interp
-#import pylab
-import math
-isper = 1
-xp = 150 
+from interpolator.Interface import interpolateGenerator
+import sys
 t_offset = 0
-
-
-infile = 'periodic.dat'
-rfs = []
-err = []
-rms = []
-time = []
-for line in open(infile).readlines():
-
-     t,rflux = map(float, line.split())
-
-
-     rmag = -2.5*(math.log(rflux)/math.log(10)) + 35 
-     err.append(1.0)
-     rms.append(rmag)
-     time.append(t)
+filtstr = 'r'
+mean_mag = 21.0
 
 tms = []
-ts = interp.TimeSeriesMag(time, rms, err, err, 'g', period = xp, offset = t_offset);
+ts = interpolateGenerator(sys.argv[1], mag0 = mean_mag, t0 = t_offset);
+ts.getParams()
+isper = ts.params['isPeriodic']
 tms.append(ts)
 #save copy of the ideal light curve for comparison later
 tsorig = ts
@@ -40,8 +26,8 @@ dec.append(-20)
 
 #send magnitudes and do the interpolation
 lc = interp.LightCurve(tms, isper)
-lcn = lc.Realize(ra, dec, doAddErr = True, doDith = False, version="OpSim3_61")
-#Available versions are: opesim3_61, opsim1_29, opsim5_72, and cronos92
+lcn = lc.Realize(ra, dec, filtstr=filtstr, doAddErr = True, doDith = False, version="OpSim3_61")
+#Available versions are: opsim1_29, opsim5_72, and cronos92
 #If you wish to use the older version of the catalog, set the version to "Cronos92".
 #Dithering can currently only be done on the older version.
 #NOTE:  If resultant magerr = -9999 the m5 was brighter than the interpolated magnitude
@@ -62,11 +48,13 @@ for i in range(len(ra)):
 #Create a set of points to sample from the original light curve
 min = min(timeres)
 max = max(timeres)
-dt = int(max - min)
-times = range(dt)
-times = num.array(times) + min
-mags = tsorig.evaluate(times)
-fluxs = tsorig.getSplineFlux(times)
+min = 50540
+max = 50545
+times = num.linspace(min,max,1000)
+#dt = int(max - min)
+#times = range(dt*10)
+#times = num.array(times)/10. + min
+mags = tsorig.evaluate(times, filt=filtstr)
 print "# Values for the input light curve"
 for i in range(len(times)):
     print times[i], mags[i]

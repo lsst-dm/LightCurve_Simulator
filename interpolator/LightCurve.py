@@ -27,7 +27,7 @@ class LightCurve:
         self.tss = ts
         self.isperiodic = isperiodic
 
-    def Realize(self, ras, decs, doAddErr = False, doDith = False, version="opsim3_61"):
+    def Realize(self, ras, decs, filtstr=None, doAddErr = False, doDith = False, version="opsim3_61"):
         ''' 
         Realize the time sampling of a set of pointings based on a database of survey pointings 
         Inputs:
@@ -54,9 +54,15 @@ class LightCurve:
             tsi = []
             #Loop over TimeSeries array
             for ts in self.tss:
+                isTimeSeries = isinstance(ts, TimeSeriesMag)
                 tmpmag = []
                 #Filter string
-                fs = ts.getFilter().lower()
+                if isTimeSeries:
+                    fs = ts.getFilter().lower()
+                    if filtstr != None:
+                        assert filtstr == fs, "Filter specified in constructor does not match that from the TimeSeries object"
+                else:
+                    fs = filtstr
                 if fs not in self.gamma:
                     #We only know sloan filters, so if something different assume r
                     print "Don't know parameters for filter",fs,"\n Assuming r..."
@@ -68,7 +74,10 @@ class LightCurve:
                     tsi.append(TimeSeriesMag(None, None, None, None, fs, calcspline = False, ra = ra, dec = dec))
                     continue
                 #Interpolatd flux values based on time sampling from database
-                fluxinterp = mutils.toFluxArr(ts.evaluate(time), fs)
+                if isTimeSeries:
+                    fluxinterp = mutils.toFluxArr(ts.evaluate(time), fs)
+                else:
+                    fluxinterp = mutils.toFluxArr(ts.evaluate(time, filt=fs), fs)
 
                 #Calculate total photometric error from interpolated magnitudes and 5 sigma limiting magnitues.
                 #Systematic error is assumed to be 0.01 magnitudes 
@@ -85,7 +94,6 @@ class LightCurve:
                     tmpflux = tmpflux + sysfluxerr*num.random.normal(0,1,len(sysfluxerr))
                     tmpmag = mutils.toMagArr(tmpflux, fs)
                     sigs = tmpflux/m1flux
-                    
                 else:
                     tmpflux = fluxinterp
                     tmpmag = mutils.toMagArr(tmpflux, fs)

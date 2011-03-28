@@ -11,7 +11,6 @@ import numpy as num
 import math
 class DB:
     ''' Class for handling database connections '''
-    #host = "interp-db.astro.washington.edu"
     host = "lsst-db.astro.washington.edu"
     user = "lsst"
     passwd = "lsst"

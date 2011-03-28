@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 import interpolator as interp
-import scipy as num
+import numpy as num
 import math
+import warnings
+import exceptions
+
 isper = 0
 
 dmod = 20 # 20th mag at peak
@@ -43,7 +46,7 @@ dec.append(60)
 
 #send magnitudes and do the interpolation
 lc = interp.LightCurve(tms, isper)
-#Available versions are: opsim1_29, opsim5_72, and cronos92
+#Available versions are: opsim3_61, opsim1_29, opsim5_72, and cronos92
 #If you wish to use the older version of the catalog, set the version to "Cronos92".
 #Dithering can currently only be done on the older version.
 #NOTE:  If resultant mag = -66 it was outside the original lightcurve

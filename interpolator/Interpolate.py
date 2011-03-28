@@ -7,6 +7,9 @@
     Modified:
     Jan 2008 by K. Simon Krughoff krughoff@astro.washington.edu
 '''
+import warnings
+import exceptions
+warnings.simplefilter('ignore', category=exceptions.DeprecationWarning)
 from scipy.interpolate import UnivariateSpline
 from scipy.interpolate import InterpolatedUnivariateSpline
 import numpy as num
