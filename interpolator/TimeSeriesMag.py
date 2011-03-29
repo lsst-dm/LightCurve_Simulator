@@ -11,8 +11,9 @@
 from Interpolate import makespline, evalper
 from MagUtils import MagUtils
 import numpy as num
+from warnings import warn
 class TimeSeriesMag:
-    def __init__(self, time, values, valerrp, valerrm, filterstr, calcspline=True, period=-1.0, offset = 0, ra=None, dec=None, m5=None):
+    def __init__(self, time, values, valerrp, valerrm, filterstr, calcspline=True, period=None, offset = 0, ra=None, dec=None, m5=None):
         ''' Construct TimeSeriesMag object from time sampling time, magnitude values values
             magnitude error values valerr, filter designation filterstr, whether to calculate
             a spline for the time series, and period of the time series in days.  If the 
@@ -110,6 +111,8 @@ class TimeSeriesMag:
 
     def getPeriod(self):
         #Get period of this time series
+        if self._period is None:
+            warn("getPeriod called before initialization of the period. TimeSeries object resulting from calls to LightCurve.Realize() have no period since they represent observational data.")
         return self._period
   
     def getSplineMags(self, dates):
